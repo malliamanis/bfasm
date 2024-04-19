@@ -1,61 +1,49 @@
+%define FILE_MAX_SIZE 20000
+
 default rel
+
+extern exit_
+extern print
+extern file_read
+
+extern bfasm_interpret
 
 global _start
 
 section .data
-size: dq 30000
-newline: db 10
+arg_err: db "error: no input files", 10, 0
 
 section .bss
-cells: resq 1
-pointer: resq 1
+file_buffer: resb FILE_MAX_SIZE
 
 section .text
-
-; prints null-terminated strings
-print: ; rdi contains the string
-	mov rsi, rdi
-
-print_loop:
-	; print character
-	mov rax, 1
-	mov rdi, 1
-	mov rdx, 1
-	syscall
-
-	; increment pointer and check if the char is 0
-	inc rsi
-	mov al, byte [rsi]
-	cmp al, 0
-	jne print_loop
-
-	ret
 
 _start:
 	push rbp
 	mov rbp, rsp
 
-	mov r8, qword [rsp + 8] ; argc
+	cmp qword [rsp + 8], 2 ; argc
+	jge _start_has_files
 
-	xor r9, 0 ; iterator
-arg_loop:
-	mov rdi, qword [rsp + 16 + 8 * r9] ; argv[iterator]
+	; if it doesn't have files
+
+	lea rdi, [arg_err]
 	call print
 
-	mov rax, 1
 	mov rdi, 1
-	lea rsi, [newline]
-	mov rdx, 1
-	syscall
+	call exit_
 
-	inc r9
-	cmp r9, r8
+_start_has_files:
+	mov rdi, qword [rsp + 16 + 8] ; argv[1] file name
+	lea rsi, [file_buffer]
+	mov rdx, FILE_MAX_SIZE
+	call file_read
 
-	jne arg_loop
+	mov rdi, rsi
+	call print
 
 	; quit
 	pop rbp
 
-	mov rax, 60
-	mov rdi, 0
-	syscall
+	xor rdi, rdi
+	call exit_
