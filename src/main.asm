@@ -34,13 +34,13 @@ _start:
 	call exit_
 
 _start_has_files:
-	mov rdi, qword [rsp + 16 + 8] ; argv[1] file name
+	mov rdi, qword [rsp + 16 + 8] ; argv[1] (file name)
 	lea rsi, [file_buffer]
-	mov rdx, FILE_MAX_SIZE
+	mov rdx, FILE_MAX_SIZE - 1    ; -1 to have room for the null char
 	call file_read
 
-	mov rdi, rsi
-	call print
+	lea rdi, [file_buffer]
+	call bfasm_interpret
 
 	; quit
 	pop rbp

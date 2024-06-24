@@ -21,17 +21,18 @@ print:
 	mov rsi, rdi
 
 print_loop:
+	cmp byte [rsi], 0
+	je print_loop_end
+
 	; print character
 	mov rax, 1
 	mov rdi, 1
 	mov rdx, 1
 	syscall
 
-	; increment pointer and check if the char is 0
 	inc rsi
-	mov al, byte [rsi]
-	cmp al, 0
-	jne print_loop
+	jmp print_loop
+print_loop_end:
 
 	ret
 
